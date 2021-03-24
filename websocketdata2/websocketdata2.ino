@@ -3,7 +3,7 @@
 #include <WebSocket.h>
 #include <LiquidCrystal.h>
 
-byte mac[] = { 0x69, 0xFF, 0x69, 0xFF, 0x69, 0xFF };
+byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
 WebSocketServer wsServer;
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
@@ -55,8 +55,10 @@ String wordarraytoString(word in[100]) {
 }
 
 void setup() {
+  Serial.begin(115200);
   lcd.begin(16, 2);
   lcd.print("initializing...");
+  Serial.println("starting things up");
   
   Ethernet.begin(mac);
   lcd.setCursor(0, 1);
@@ -103,6 +105,7 @@ void loop() {
     lcd.print(Ethernet.linkStatus() == LinkON ? "Connected" : "Disconnected");
     lcd.setCursor(0, 1);
     lcd.print(Ethernet.linkStatus() == LinkON ? "IP:" + String(Ethernet.localIP()) : "");
+    Serial.println(Ethernet.localIP());
   } else {
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -116,7 +119,7 @@ void loop() {
     out += "{\"bpm_data\":{\"lastbeatinterval\":";
     out += String(bpm_lastbeattime - bpm_lastlastbeattime);
     out += ",\"time_left\":";
-    out += String(bpmstarttime + 30000 - curtime);
+    out += String((bpmstarttime + 30000 - curtime)/1000);
     out += ",\"is_busy\":\"";
     out += String(bpmbusy);
 
@@ -125,7 +128,7 @@ void loop() {
     out += "],\"datapos\":";
     out += String(ecgdatapos);
     out += "\",\"time_left\":";
-    out += String(ecgstarttime + 30000 - curtime);
+    out += String((ecgstarttime + 30000 - curtime)/1000);
     out += ",\"is_busy\":\"";
     out += String(ecgbusy);
 
@@ -135,6 +138,9 @@ void loop() {
     out.toCharArray(outarr, out.length());
     wsServer.send(outarr, out.length());
   }
+
+  digitalWrite(8, bpmbusy || ecgbusy);
+  digitalWrite(9, (!bpmbusy) && (!ecgbusy));
   
   delay(20);
   
