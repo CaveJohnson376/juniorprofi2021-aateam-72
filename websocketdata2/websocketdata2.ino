@@ -97,7 +97,7 @@ void loop() {
   
   if (showip) {
     if (!showip_prev) showipstarttime = curtime;
-    if (curtime > showipstarttime + 10000) showip = false;
+    if (curtime > showipstarttime + 5000) showip = false;
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(Ethernet.linkStatus() == LinkON ? "Connected" : "Disconnected");
