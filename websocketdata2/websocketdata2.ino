@@ -21,7 +21,31 @@ bool bpm_state = false;
 bool bpm_state_prev = false;
 
 word ecgdata[100];
-byte ecgdatapos = 0
+byte ecgdatapos = 0;
+
+void onConnect(WebSocket &socket) {
+
+}
+
+void onData(WebSocket &socket, char* dataString, byte frameLength) {
+  if (String(dataString) == "startbpm") bpmbusy = true;
+  if (String(dataString) == "stopbpm") bpmbusy = false;
+  if (String(dataString) == "startecg") ecgbusy = true;
+  if (String(dataString) == "stopecg") ecgbusy = false;
+}
+
+void onDisconnect(WebSocket &socket) {
+
+}
+
+String wordarraytoString(word in[100]) {
+  String out = "";
+  for (byte i = 0; i < 100; i++) {
+    out += String(in[i]);
+    if (i != 99) out += ",";
+  }
+  return out;
+}
 
 void setup() {
   Ethernet.begin(mac);
@@ -35,9 +59,6 @@ void setup() {
 void loop() {
   unsigned long curtime = millis();
   wsServer.listen();
-  if (wsServer.connectionCount() > 0) {
-    wsServer.send("abc123", 6);
-  }
   if (bpmbusy) {
     if (!bpmbusy_prev) bpmstarttime = curtime;
     if (curtime > bpmstarttime + 30000) bpmbusy = false;
@@ -49,12 +70,38 @@ void loop() {
       bpm_lastbeattime = curtime;
     }
   }
+
   if (ecgbusy) {
     if (!ecgbusy_prev) ecgstarttime = curtime;
     if (curtime > ecgstarttime + 30000) ecgbusy = false;
 
     ecgdatapos = ecgdatapos == 99 ? 0 : ecgdatapos + 1;
-    ecgdata[ecgdatapos] = 
+    ecgdata[ecgdatapos] = (digitalRead(A2) == true && digitalRead(A3) == true) ? 0 : analogRead(A1);
+  }
+
+  if (wsServer.connectionCount() > 0) {
+    String out = "";
+    out += "{\"bpm_data\":{\"lastbeatinterval\":";
+    out += String(bpm_lastbeattime - bpm_lastlastbeattime);
+    out += ",\"time_left\":";
+    out += String(bpmstarttime + 30000 - curtime);
+    out += ",\"is_busy\":\"";
+    out += String(bpmbusy);
+
+    out += "\"},\"ecg_data\":{\"data\":\"";
+    out += wordarraytoString(ecgdata);
+    out += "\",\"datapos\":";
+    out += String(ecgdatapos);
+    out += "\",\"time_left\":";
+    out += String(ecgstarttime + 30000 - curtime);
+    out += ",\"is_busy\":\"";
+    out += String(ecgbusy);
+
+    out += "\"}";
+
+    char outarr[out.length()];
+    out.toCharArray(outarr, out.length());
+    wsServer.send(outarr, out.length());
   }
   delay(20);
 }
