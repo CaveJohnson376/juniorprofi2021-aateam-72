@@ -38,7 +38,7 @@ func _closed(was_clean = false):
 	
 	$\"Diq/Start BPM\".disabled = true
 	$\"Diq/Start ECG\".disabled = true
-	
+	_client.queue_free()
 	_client = WebSocketClient.new()
 
 func _connected(proto = \"\"):
