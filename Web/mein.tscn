@@ -10,7 +10,7 @@ var datat = {}
 var _client = WebSocketClient.new()
 
 var is_connected = false
-var dataisvaled
+var dataisvaled = false
 
 func _ready():
 	# Connect base signals to get notified of connection open, close, and errors.
@@ -31,6 +31,15 @@ func _closed(was_clean = false):
 	print(\"Closed, clean: \", was_clean)
 	set_process(false)
 	is_connected = false
+	
+	$Connction/Connect.disabled = false
+	$Connction/IP.editable = true
+	$Connction/Connect.text = \"Connect\"
+	
+	$\"Diq/Start BPM\".disabled = true
+	$\"Diq/Start ECG\".disabled = true
+	
+	_client = WebSocketClient.new()
 
 func _connected(proto = \"\"):
 	# This is called on connection, \"proto\" will be the selected WebSocket
@@ -39,17 +48,25 @@ func _connected(proto = \"\"):
 	# You MUST always use get_peer(1).put_packet to send data to server,
 	# and not put_packet directly when not using the MultiplayerAPI.
 	_client.get_peer(1).put_packet(\"Test packet\".to_utf8())
-	
+	set_process(true)
 	is_connected = true
+	
+	$Connction/Connect.disabled = false
+	$Connction/IP.editable = false
+	$Connction/Connect.text = \"Disconnect\"
+	
+	$\"Diq/Start BPM\".disabled = false
+	$\"Diq/Start ECG\".disabled = false
 
 func _on_data():
 	# Print the received packet, you MUST always use get_peer(1).get_packet
 	# to receive data from server, and not get_packet directly when not
 	# using the MultiplayerAPI.
 	datat = JSON.parse(_client.get_peer(1).get_packet().get_string_from_utf8())
-	if datat.result.bpm_data:
-		dataisvaled = true
-	datat.result.ecg_data
+	dataisvaled = true if datat.result.bpm_data else false
+	if dataisvaled:
+		$\"Diq/Start BPM\".text = \"Stop BPM scan\" if datat.result.bpm_data.is_busy else \"Start BPM scan\"
+		$\"Diq/Start ECG\".text = \"Stop ECG scan\" if datat.result.ecg_data.is_busy else \"Start ECG scan\"
 	
 	
 	
@@ -67,6 +84,9 @@ func _process(delta):
 
 func _on_Connection_button__pressed():
 	if is_connected == false:
+		$Connction/Connect.disabled = true
+		$Connction/IP.editable = false
+		$Connction/Connect.text = \"Connecting...\"
 		websocket_url = $Connction/IP.text
 		print(websocket_url)
 		var err = _client.connect_to_url(websocket_url)
@@ -74,13 +94,20 @@ func _on_Connection_button__pressed():
 			print(\"Unable to connect\")
 			set_process(false)
 	else: 
+		$Connction/Connect.disabled = true
+		$Connction/IP.editable = false
+		$Connction/Connect.text = \"Disconnecting...\"
 		_client.disconnect_from_host()
-	pass # Replace with function body.
+	
 
 
 func _on_Start_BPM_pressed():
-	
-	pass # Replace with function body.
+	if dataisvaled:
+		if datat.result.bpm_data.is_busy:
+			_client.get_peer(1).put_packet(\"stopbpm\".to_ascii())
+		else:
+			_client.get_peer(1).put_packet(\"startbpm\".to_ascii())
+	pass
 
 
 func _on_Start_ECG_pressed():
@@ -128,6 +155,7 @@ anchor_right = 1.0
 margin_top = 22.0
 margin_right = 1.0
 margin_bottom = 28.7168
+disabled = true
 text = "Start BPM"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -157,6 +185,7 @@ anchor_right = 1.0
 margin_top = 82.0
 margin_right = 1.0
 margin_bottom = 62.3415
+disabled = true
 text = "Start ECG"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -171,7 +200,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Connection button " type="Button" parent="Connction"]
+[node name="Connect" type="Button" parent="Connction"]
 anchor_right = 1.0
 margin_top = 32.0
 margin_bottom = 24.0
@@ -183,6 +212,8 @@ __meta__ = {
 [node name="IP" type="LineEdit" parent="Connction"]
 anchor_right = 1.0
 margin_left = 100.0
+text = "192.168.1.1"
+align = 2
 placeholder_text = "192.168.1.1"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -211,4 +242,4 @@ __meta__ = {
 }
 [connection signal="pressed" from="Diq/Start BPM" to="." method="_on_Start_BPM_pressed"]
 [connection signal="pressed" from="Diq/Start ECG" to="." method="_on_Start_ECG_pressed"]
-[connection signal="pressed" from="Connction/Connection button " to="." method="_on_Connection_button__pressed"]
+[connection signal="pressed" from="Connction/Connect" to="." method="_on_Connection_button__pressed"]
