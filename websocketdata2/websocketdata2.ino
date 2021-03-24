@@ -1,10 +1,17 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <WebSocket.h>
+#include <LiquidCrystal.h>
 
 byte mac[] = { 0x69, 0xFF, 0x69, 0xFF, 0x69, 0xFF };
 
 WebSocketServer wsServer;
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+bool showip = false;
+bool showip_prev = false;
+
+unsigned long showipstarttime = 0;
+
 
 unsigned long bpmstarttime = 0;
 unsigned long ecgstarttime = 0;
@@ -48,12 +55,19 @@ String wordarraytoString(word in[100]) {
 }
 
 void setup() {
+  lcd.begin(16, 2);
+  lcd.print("initializing...");
+  
   Ethernet.begin(mac);
-
+  lcd.setCursor(0, 1);
+  lcd.print("starting...");
+  
   wsServer.registerConnectCallback(&onConnect);
   wsServer.registerDataCallback(&onData);
   wsServer.registerDisconnectCallback(&onDisconnect);
   wsServer.begin();
+  lcd.clear();
+  showip = true;
 }
 
 void loop() {
@@ -62,8 +76,8 @@ void loop() {
   if (bpmbusy) {
     if (!bpmbusy_prev) bpmstarttime = curtime;
     if (curtime > bpmstarttime + 30000) bpmbusy = false;
+    
     bpm_state_prev = bpm_state;
-
     bpm_state = analogRead(A0) > 512 ? true : false;
     if (bpm_state && !bpm_state_prev) {
       bpm_lastlastbeattime = bpm_lastbeattime;
@@ -79,6 +93,24 @@ void loop() {
     ecgdata[ecgdatapos] = (digitalRead(A2) == true && digitalRead(A3) == true) ? 0 : analogRead(A1);
   }
 
+  if (digitalRead(A4)) showip = true;
+  
+  if (showip) {
+    if (!showip_prev) showipstarttime = curtime;
+    if (curtime > showipstarttime + 10000) showip = false;
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(Ethernet.linkStatus() == LinkON ? "Connected" : "Disconnected");
+    lcd.setCursor(0, 1);
+    lcd.print(Ethernet.linkStatus() == LinkON ? "IP:" + String(Ethernet.localIP()) : "");
+  } else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("BPM " + (bpmbusy ? "RUN" + String((byte)(bpmstarttime + 30000 - curtime)) : "STB"));
+    lcd.setCursor(0, 1);
+    lcd.print("ECG " + (bpmbusy ? "RUN" + String((byte)(bpmstarttime + 30000 - curtime)) : "STB"));
+  }
+  
   if (wsServer.connectionCount() > 0) {
     String out = "";
     out += "{\"bpm_data\":{\"lastbeatinterval\":";
@@ -88,9 +120,9 @@ void loop() {
     out += ",\"is_busy\":\"";
     out += String(bpmbusy);
 
-    out += "\"},\"ecg_data\":{\"data\":\"";
+    out += "\"},\"ecg_data\":{\"data\":[";
     out += wordarraytoString(ecgdata);
-    out += "\",\"datapos\":";
+    out += "],\"datapos\":";
     out += String(ecgdatapos);
     out += "\",\"time_left\":";
     out += String(ecgstarttime + 30000 - curtime);
@@ -103,5 +135,10 @@ void loop() {
     out.toCharArray(outarr, out.length());
     wsServer.send(outarr, out.length());
   }
+  
   delay(20);
+  
+  bpmbusy_prev = bpmbusy;
+  ecgbusy_prev = ecgbusy;
+  showip_prev = showip;
 }
