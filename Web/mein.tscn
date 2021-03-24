@@ -1,0 +1,211 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Control
+
+# The URL we will connect to
+export var websocket_url = \"ws://echo.websocket.org\"
+var datat = {}
+# Our WebSocketClient instance
+var _client = WebSocketClient.new()
+
+var is_connected = false
+var dataisvaled
+
+func _ready():
+	# Connect base signals to get notified of connection open, close, and errors.
+	_client.connect(\"connection_closed\", self, \"_closed\")
+	_client.connect(\"connection_error\", self, \"_closed\")
+	_client.connect(\"connection_established\", self, \"_connected\")
+	# This signal is emitted when not using the Multiplayer API every time
+	# a full packet is received.
+	# Alternatively, you could check get_peer(1).get_available_packets() in a loop.
+	_client.connect(\"data_received\", self, \"_on_data\")
+
+	# Initiate connection to the given URL.
+
+
+func _closed(was_clean = false):
+	# was_clean will tell you if the disconnection was correctly notified
+	# by the remote peer before closing the socket.
+	print(\"Closed, clean: \", was_clean)
+	set_process(false)
+	is_connected = false
+
+func _connected(proto = \"\"):
+	# This is called on connection, \"proto\" will be the selected WebSocket
+	# sub-protocol (which is optional)
+	print(\"Connected with protocol: \", proto)
+	# You MUST always use get_peer(1).put_packet to send data to server,
+	# and not put_packet directly when not using the MultiplayerAPI.
+	_client.get_peer(1).put_packet(\"Test packet\".to_utf8())
+	
+	is_connected = true
+
+func _on_data():
+	# Print the received packet, you MUST always use get_peer(1).get_packet
+	# to receive data from server, and not get_packet directly when not
+	# using the MultiplayerAPI.
+	datat = JSON.parse(_client.get_peer(1).get_packet().get_string_from_utf8())
+	if datat.result.bpm_data:
+		dataisvaled = true
+	datat.result.ecg_data
+	
+	
+	
+
+# warning-ignore:unused_argument
+func _process(delta):
+	# Call this in _process or _physics_process. Data transfer, and signals
+	# emission will only happen when calling this function.
+	_client.poll()
+	
+	
+	if dataisvaled:
+		$Diq/BPM.text = datat.bpm_data.bpm_lastbeattime
+	#$Diq/ECG.text = datat.ecg_data
+
+func _on_Connection_button__pressed():
+	if is_connected == false:
+		websocket_url = $Connction/IP.text
+		print(websocket_url)
+		var err = _client.connect_to_url(websocket_url)
+		if err != OK:
+			print(\"Unable to connect\")
+			set_process(false)
+	else: 
+		_client.disconnect_from_host()
+	pass # Replace with function body.
+
+
+func _on_Start_BPM_pressed():
+	
+	pass # Replace with function body.
+
+
+func _on_Start_ECG_pressed():
+	pass # Replace with function body.
+"
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Diq" type="Panel" parent="."]
+margin_left = 219.895
+margin_top = 96.6146
+margin_right = 372.895
+margin_bottom = 208.615
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ECG" type="Label" parent="Diq"]
+margin_left = 9.59141
+margin_top = 38.908
+margin_right = 49.5914
+margin_bottom = 52.908
+text = "231"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BPM" type="Label" parent="Diq"]
+margin_left = 6.67493
+margin_top = 13.0498
+margin_right = 46.6749
+margin_bottom = 27.0498
+text = "123"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Start BPM" type="Button" parent="Diq"]
+margin_left = 67.7666
+margin_top = 8.71681
+margin_right = 136.767
+margin_bottom = 28.7168
+text = "Start BPM"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Start ECG" type="Button" parent="Diq"]
+margin_left = 66.304
+margin_top = 42.3415
+margin_right = 136.304
+margin_bottom = 62.3415
+text = "Start ECG"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Connction" type="Panel" parent="."]
+margin_left = 76.591
+margin_top = 90.9591
+margin_right = 208.591
+margin_bottom = 233.959
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Connection button " type="Button" parent="Connction"]
+margin_left = 5.43262
+margin_top = 70.5176
+margin_right = 88.4326
+margin_bottom = 90.5176
+text = "Connect "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IP" type="LineEdit" parent="Connction"]
+margin_left = 5.27419
+margin_top = 42.6238
+margin_right = 93.2737
+margin_bottom = 66.6238
+placeholder_text = "192.168.1.1"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Enter IP" type="Label" parent="Connction"]
+margin_left = 9.64806
+margin_top = 15.5244
+margin_right = 86.6481
+margin_bottom = 46.5244
+text = "Enter you IP
+"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Status" type="Label" parent="Connction"]
+margin_left = 12.0
+margin_top = 100.0
+margin_right = 90.0
+margin_bottom = 114.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BPM Time reamaining" type="Label" parent="."]
+margin_right = 40.0
+margin_bottom = 14.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ECG Time reamaining" type="Label" parent="."]
+margin_right = 40.0
+margin_bottom = 14.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="pressed" from="Diq/Start BPM" to="." method="_on_Start_BPM_pressed"]
+[connection signal="pressed" from="Diq/Start ECG" to="." method="_on_Start_ECG_pressed"]
+[connection signal="pressed" from="Connction/Connection button " to="." method="_on_Connection_button__pressed"]
