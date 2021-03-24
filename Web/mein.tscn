@@ -96,48 +96,66 @@ __meta__ = {
 }
 
 [node name="Diq" type="Panel" parent="."]
-margin_left = 219.895
-margin_top = 96.6146
-margin_right = 372.895
-margin_bottom = 208.615
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="ECG" type="Label" parent="Diq"]
-margin_left = 9.59141
-margin_top = 38.908
-margin_right = 49.5914
-margin_bottom = 52.908
-text = "231"
+anchor_right = 1.0
+margin_top = 100.0
+margin_bottom = 200.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="BPM" type="Label" parent="Diq"]
-margin_left = 6.67493
-margin_top = 13.0498
-margin_right = 46.6749
-margin_bottom = 27.0498
+margin_top = -0.172928
+margin_right = 29.0
+margin_bottom = 13.8271
+text = "BPM"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BPM_status" type="Label" parent="Diq"]
+anchor_right = 1.0
+margin_left = 35.0
+margin_right = 1.0
+margin_bottom = 6.0
 text = "123"
+align = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Start BPM" type="Button" parent="Diq"]
-margin_left = 67.7666
-margin_top = 8.71681
-margin_right = 136.767
+anchor_right = 1.0
+margin_top = 22.0
+margin_right = 1.0
 margin_bottom = 28.7168
 text = "Start BPM"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="ECG" type="Label" parent="Diq"]
+margin_top = 62.0
+text = "ECG"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ECG_status" type="Label" parent="Diq"]
+anchor_right = 1.0
+margin_left = 31.0
+margin_top = 62.0
+margin_right = 1.0
+margin_bottom = 36.0
+text = "231"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Start ECG" type="Button" parent="Diq"]
-margin_left = 66.304
-margin_top = 42.3415
-margin_right = 136.304
+anchor_right = 1.0
+margin_top = 82.0
+margin_right = 1.0
 margin_bottom = 62.3415
 text = "Start ECG"
 __meta__ = {
@@ -145,50 +163,35 @@ __meta__ = {
 }
 
 [node name="Connction" type="Panel" parent="."]
-margin_left = 76.591
-margin_top = 90.9591
-margin_right = 208.591
-margin_bottom = 233.959
+anchor_right = 1.0
+margin_left = -0.156647
+margin_right = -0.156616
+margin_bottom = 100.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Connection button " type="Button" parent="Connction"]
-margin_left = 5.43262
-margin_top = 70.5176
-margin_right = 88.4326
-margin_bottom = 90.5176
+anchor_right = 1.0
+margin_top = 32.0
+margin_bottom = 24.0
 text = "Connect "
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="IP" type="LineEdit" parent="Connction"]
-margin_left = 5.27419
-margin_top = 42.6238
-margin_right = 93.2737
-margin_bottom = 66.6238
+anchor_right = 1.0
+margin_left = 100.0
 placeholder_text = "192.168.1.1"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Enter IP" type="Label" parent="Connction"]
-margin_left = 9.64806
-margin_top = 15.5244
-margin_right = 86.6481
-margin_bottom = 46.5244
-text = "Enter you IP
-"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Status" type="Label" parent="Connction"]
-margin_left = 12.0
-margin_top = 100.0
-margin_right = 90.0
-margin_bottom = 114.0
+margin_right = 77.0
+margin_bottom = 14.0
+text = "Enter you IP"
 __meta__ = {
 "_edit_use_anchors_": false
 }
