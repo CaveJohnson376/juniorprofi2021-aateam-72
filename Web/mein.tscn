@@ -75,8 +75,8 @@ func _on_data():
 	
 	
 	if dataisvaled:
-		$\"Diq/Start BPM\".text = \"Stop BPM scan\" if datat.result.bpm_data.is_busy else \"Start BPM scan\"
-		$\"Diq/Start ECG\".text = \"Stop ECG scan\" if datat.result.ecg_data.is_busy else \"Start ECG scan\"
+		$\"Diq/Start BPM\".text = \"Stop BPM scan\" if datat.result.bpm_data.is_busy == \"1\" else \"Start BPM scan\"
+		$\"Diq/Start ECG\".text = \"Stop ECG scan\" if datat.result.ecg_data.is_busy == \"1\" else \"Start ECG scan\"
 	
 	
 	
@@ -114,7 +114,7 @@ func _on_Connection_button__pressed():
 func _on_Start_BPM_pressed():
 	if dataisvaled:
 		print(\"toggling BPM\")
-		if datat.result.bpm_data.is_busy:
+		if datat.result.bpm_data.is_busy == \"1\":
 			_client.get_peer(1).put_packet(\"stopbpm\".to_ascii())
 		else:
 			_client.get_peer(1).put_packet(\"startbpm\".to_ascii())

@@ -5,6 +5,8 @@
 
 ESP8266WiFiMulti WiFiMulti;
 
+//#define Serial Serial1
+
 WebSocketsServer webSocket = WebSocketsServer(80);
 
 String IpAddress2String(const IPAddress& ipAddress) {

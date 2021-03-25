@@ -5,7 +5,7 @@ LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 unsigned long showipstarttime = 0;
 bool showip = false;
 bool showip_prev = false;
-String ip = "Disconnected\n0.0.0.0";
+String ip = "WiFi not found\n";
 
 unsigned long bpmstarttime = 0;
 unsigned long ecgstarttime = 0;
@@ -53,6 +53,7 @@ void loop() {
     ip = espdata.substring(2);
 
   unsigned long curtime = millis();
+
   if (bpmbusy) {
     if (!bpmbusy_prev) bpmstarttime = curtime;
     if (curtime > bpmstarttime + 30000) bpmbusy = false;
@@ -97,7 +98,7 @@ void loop() {
   String out = "";
   out += "{\"curtime\":";
   out += String(curtime);
-  
+
   out += ",\"bpm_data\":{\"lastbeatinterval\":";
   out += String(bpm_lastbeattime - bpm_lastlastbeattime);
   out += ",\"time_left\":";
