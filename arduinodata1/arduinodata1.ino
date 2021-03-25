@@ -19,14 +19,14 @@ unsigned long bpm_lastlastbeattime = 0;
 bool bpm_state = false;
 bool bpm_state_prev = false;
 
-word ecgdata[100];
+word ecgdata[10];
 byte ecgdatapos = 0;
 
-String wordarraytoString(word in[100]) {
+String wordarraytoString(word in[10]) {
   String out = "";
-  for (byte i = 0; i < 100; i++) {
+  for (byte i = 0; i < 10; i++) {
     out += String(in[i]);
-    if (i != 99) out += ",";
+    if (i != 9) out += ",";
   }
   return out;
 }
@@ -69,7 +69,7 @@ void loop() {
     if (!ecgbusy_prev) ecgstarttime = curtime;
     if (curtime > ecgstarttime + 30000) ecgbusy = false;
 
-    ecgdatapos = ecgdatapos == 99 ? 0 : ecgdatapos + 1;
+    ecgdatapos = ecgdatapos == 9 ? 0 : ecgdatapos + 1;
     ecgdata[ecgdatapos] = (digitalRead(A2) == true && digitalRead(A3) == true) ? 0 : analogRead(A1);
   }
 
@@ -95,31 +95,31 @@ void loop() {
   }
 
   String out = "";
-  out += "{\"bpm_data\":{\"lastbeatinterval\":";
+  out += "{\"curtime\":";
+  out += String(curtime);
+  
+  out += ",\"bpm_data\":{\"lastbeatinterval\":";
   out += String(bpm_lastbeattime - bpm_lastlastbeattime);
   out += ",\"time_left\":";
-  out += String((bpmstarttime + 30000 - curtime) / 1000);
+  out += String(bpmstarttime);
   out += ",\"is_busy\":\"";
   out += String(bpmbusy);
-
   out += "\"},\"ecg_data\":{\"data\":[";
   out += wordarraytoString(ecgdata);
   out += "],\"datapos\":";
   out += String(ecgdatapos);
-  out += "\",\"time_left\":";
-  out += String((ecgstarttime + 30000 - curtime) / 1000);
+  out += ",\"time_left\":";
+  out += String(ecgstarttime);
   out += ",\"is_busy\":\"";
   out += String(ecgbusy);
+  out += "\"}}\r";
 
-  out += "\"}\r";
-
-  char outarr[out.length()];
-  out.toCharArray(outarr, out.length());
+  Serial.print(out);
 
   digitalWrite(8, bpmbusy || ecgbusy);
   digitalWrite(9, (!bpmbusy) && (!ecgbusy));
 
-  delay(20);
+  delay(100);
 
   bpmbusy_prev = bpmbusy;
   ecgbusy_prev = ecgbusy;

@@ -28,6 +28,7 @@ void setup() {
   Serial.begin(115200);
 
   WiFiMulti.addAP("Cuba_2G4", "Cube09021922211605");
+  WiFiMulti.addAP("KVANT72", "28346dGb7");
 
   while (WiFiMulti.run() != WL_CONNECTED) {
     delay(100);

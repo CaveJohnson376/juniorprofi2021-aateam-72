@@ -5,7 +5,7 @@ script/source = "extends Control
 
 # The URL we will connect to
 export var websocket_url = \"ws://echo.websocket.org\"
-var datat = {}
+var datat = JSON.parse('{\"bruh\":\"bruh\"}')
 # Our WebSocketClient instance
 var _client = WebSocketClient.new()
 
@@ -38,8 +38,8 @@ func _closed(was_clean = false):
 	
 	$\"Diq/Start BPM\".disabled = true
 	$\"Diq/Start ECG\".disabled = true
-	_client.queue_free()
-	_client = WebSocketClient.new()
+#	_client.queue_free()
+#	_client = WebSocketClient.new()
 
 func _connected(proto = \"\"):
 	# This is called on connection, \"proto\" will be the selected WebSocket
@@ -59,11 +59,21 @@ func _connected(proto = \"\"):
 	$\"Diq/Start ECG\".disabled = false
 
 func _on_data():
-	# Print the received packet, you MUST always use get_peer(1).get_packet
-	# to receive data from server, and not get_packet directly when not
-	# using the MultiplayerAPI.
-	datat = JSON.parse(_client.get_peer(1).get_packet().get_string_from_utf8())
-	dataisvaled = true if datat.result.bpm_data else false
+	var inputdata = _client.get_peer(1).get_packet().get_string_from_ascii()
+	#print(inputdata)
+	datat = JSON.parse(inputdata)
+	
+	print(datat.result)
+	if datat.result != null:
+		if datat.result.has(\"bpm_data\"):
+			dataisvaled = true
+			#print(datat.result)
+		else:
+			dataisvaled = false
+	else:
+		dataisvaled = false
+	
+	
 	if dataisvaled:
 		$\"Diq/Start BPM\".text = \"Stop BPM scan\" if datat.result.bpm_data.is_busy else \"Start BPM scan\"
 		$\"Diq/Start ECG\".text = \"Stop ECG scan\" if datat.result.ecg_data.is_busy else \"Start ECG scan\"
@@ -79,7 +89,7 @@ func _process(delta):
 	
 	
 	if dataisvaled:
-		$Diq/BPM.text = datat.bpm_data.bpm_lastbeattime
+		$Diq/BPM_status.text = datat.result.bpm_data.get(\"bpm_lastbeattime\", \"N/A\")
 	#$Diq/ECG.text = datat.ecg_data
 
 func _on_Connection_button__pressed():
@@ -103,6 +113,7 @@ func _on_Connection_button__pressed():
 
 func _on_Start_BPM_pressed():
 	if dataisvaled:
+		print(\"toggling BPM\")
 		if datat.result.bpm_data.is_busy:
 			_client.get_peer(1).put_packet(\"stopbpm\".to_ascii())
 		else:
@@ -111,6 +122,12 @@ func _on_Start_BPM_pressed():
 
 
 func _on_Start_ECG_pressed():
+	pass # Replace with function body.
+
+
+func _on_IP_gui_input(event):
+	if event.is_action_pressed(\"ui_accept\"):
+		_on_Connection_button__pressed()
 	pass # Replace with function body.
 "
 
@@ -214,6 +231,7 @@ anchor_right = 1.0
 margin_left = 100.0
 text = "192.168.1.1"
 align = 2
+max_length = 21
 placeholder_text = "192.168.1.1"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -243,3 +261,4 @@ __meta__ = {
 [connection signal="pressed" from="Diq/Start BPM" to="." method="_on_Start_BPM_pressed"]
 [connection signal="pressed" from="Diq/Start ECG" to="." method="_on_Start_ECG_pressed"]
 [connection signal="pressed" from="Connction/Connect" to="." method="_on_Connection_button__pressed"]
+[connection signal="gui_input" from="Connction/IP" to="." method="_on_IP_gui_input"]
